@@ -6,22 +6,73 @@ import java.util.*;
 public class GraphTask {
 
    /** Main method. */
-   public static void main (String[] args) {
+   public static void main(int n, int m) {
       GraphTask a = new GraphTask();
-      a.run();
-      throw new RuntimeException ("Nothing implemented yet!"); // delete this
+      a.run(n, m);
+   }
+
+   public List<Arc> run_test2(){
+      Graph g = new Graph("G2");
+
+      Vertex v1 = g.createVertex("v1");
+      Vertex v2 = g.createVertex("v2");
+
+      List<Arc> shortestPath = g.findShortestPath(v1, v2);
+
+      return shortestPath;
+   }
+
+   public List<Arc> run_test1(){
+      Graph g = new Graph("G1");
+
+      Vertex v1 = g.createVertex("v1");
+      Vertex v2 = g.createVertex("v2");
+      Vertex v3 = g.createVertex("v3");
+
+      Arc av1_v2 = g.createArc("av1_v2", v1, v2);
+      Arc av2_v3 = g.createArc("av2_v3", v2, v3);
+      Arc av1_v3 = g.createArc("av1_v3", v1, v3);
+
+      List<Arc> shortestPath = g.findShortestPath(v1, v2);
+
+      return  shortestPath;
    }
 
    /** Actual main method to run examples and everything. */
-   public void run() {
-      Graph g = new Graph ("G");
-      g.createRandomSimpleGraph (6, 9);
-      System.out.println (g);
+   public List<Arc> run(int n, int m) {
+      Graph g = new Graph("G");
+      g.createRandomSimpleGraph(n, m);
+      System.out.println(g);
 
-      // TODO!!! Your experiments here
+      Vertex start = g.first;
+      Vertex end = g.first.next.next.next.next.next;
+
+      //int targetVertexNumber = 5;
+      //int currentVertexNumber = 1;
+
+      //while (end != null && currentVertexNumber < targetVertexNumber) {
+      //   end = end.next;
+      //   currentVertexNumber++;
+      //}
+
+      //if (end == null) {
+       //  System.out.println("No vertex with number " + targetVertexNumber + " found.");
+      //} else {
+       //  System.out.println("Vertex with number " + targetVertexNumber + " is: " + end);
+      //}
+
+      List<Arc> shortestPath = g.findShortestPath(start, end);
+
+      if (shortestPath == null) {
+         System.out.println("No path exists between the given vertices.");
+      } else {
+         for (Arc arc : shortestPath) {
+            System.out.println(arc);
+         }
+      }
+      return shortestPath;
    }
 
-   // TODO!!! add javadoc relevant to your problem
    class Vertex {
 
       private String id;
@@ -44,8 +95,6 @@ public class GraphTask {
       public String toString() {
          return id;
       }
-
-      // TODO!!! Your Vertex methods here!
    }
 
 
@@ -74,8 +123,6 @@ public class GraphTask {
       public String toString() {
          return id;
       }
-
-      // TODO!!! Your Arc methods here!
    } 
 
 
@@ -227,7 +274,86 @@ public class GraphTask {
          }
       }
 
-      // TODO!!! Your Graph methods here! Probably your solution belongs here.
+
+      /**
+       * Finds the shortest path between two vertices in the graph using Breadth-First Search.
+       *
+       * @param start The starting vertex for the search.
+       * @param end   The ending vertex for the search.
+       * @return A list of arcs representing the shortest path between the two vertices, or null if no path exists.
+       */
+      public List<Arc> findShortestPath(Vertex start, Vertex end) {
+         // Check for null values of vertices
+         if (start == null || end == null) {
+            return null;
+         }
+         // Initialize previous arcs, queue, and visited vertices
+         Map<Vertex, Arc> previousArcs = new HashMap<>();
+         Queue<Vertex> queue = new LinkedList<>();
+         Set<Vertex> visited = new HashSet<>();
+
+         // Add the starting vertex to the queue and the set of visited vertices
+         queue.offer(start);
+         visited.add(start);
+
+         // Breadth-first traversal of the graph
+         while (!queue.isEmpty()) {
+            Vertex currentVertex = queue.poll();
+
+            // If the current vertex is the end vertex, break the loop
+            if (currentVertex == end) {
+               break;
+            }
+
+            // Iterate over all adjacent arcs of the current vertex
+            Arc arc = currentVertex.first;
+            while (arc != null) {
+               Vertex targetVertex = arc.target;
+
+               // If the adjacent vertex has not been visited, add it to the queue and the set of visited vertices
+               if (!visited.contains(targetVertex)) {
+                  visited.add(targetVertex);
+                  previousArcs.put(targetVertex, arc);
+                  queue.offer(targetVertex);
+               }
+               arc = arc.next;
+            }
+         }
+
+         // If there is no path between the start and end vertices, return null
+         if (!previousArcs.containsKey(end)) {
+            return null;
+         }
+
+         // Reconstruct the shortest path using the map of previous arcs
+         List<Arc> path = new ArrayList<>();
+         Vertex currentVertex = end;
+         while (currentVertex != start) {
+            Arc arc = previousArcs.get(currentVertex);
+            path.add(arc);
+            currentVertex = findVertexByArc(arc, currentVertex);
+         }
+         Collections.reverse(path);
+         return path;
+      }
+
+      private Vertex findVertexByArc(Arc arc, Vertex targetVertex) {
+         Vertex v = first;
+         while (v != null) {
+            Arc a = v.first;
+            while (a != null) {
+               if (a == arc && a.target == targetVertex) {
+                  return v;
+               }
+               a = a.next;
+            }
+            v = v.next;
+         }
+         return null;
+
+      }
+
+
    }
 
 } 
